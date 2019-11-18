@@ -5,18 +5,18 @@ import re
 import requests
 import datetime
 
-from flask import Flask, request, session, g, redirect, url_for, jsonify
+from flask import Flask, request, g, jsonify
 from flask_pymongo import PyMongo
 
 app = Flask(__name__)
 
 # configuration
-
 app.config['MONGO_URI'] = os.environ['MONGODB_URI']
 
 # connect to the database
 mongo = PyMongo(app)
 
+# handle http status code
 @app.errorhandler(400)
 def method_400(exception):
     return "",404
@@ -33,6 +33,7 @@ def method_405(exception):
 def method_500(exception):
     return "",404
 
+# add db connection for each request
 @app.before_request
 def before_request():
     g.mongo = mongo
@@ -41,13 +42,14 @@ def before_request():
 def info():
     reqLog = g.mongo.db.reqLog
     reqNum = reqLog.find().count()
-    errNum = reqLog.find({"reqState":0}).count()
+    errNum = reqLog.find({"reqState":0},{}).count()
     responseData = { "number_of_requests": { "innerproduct": reqNum}, "number_of_errors": { "innerproduct": errNum } }
     return jsonify(responseData), 200
 
 @app.route('/innerproduct', methods=['POST'])
 def innerproduct():
     inputData = request.get_json()
+    # initiate related attributes
     responseData = { "error": { "type": "format error" } }
     reqState = 0
     nowTime = datetime.datetime.now()
@@ -66,21 +68,25 @@ def innerproduct():
     return jsonify(responseData),200
 
 def checkArray(xArray,yArray):
+# check if these two array fulfill the requirements
+    # check if array contains numbers
     checkX = all(isinstance(n, int) for n in xArray)
     checkY = all(isinstance(n, int) for n in yArray)
     if checkX == True and checkY == True:
         lenX = len(xArray)
         lenY = len(yArray)
+        # check if the length of arrays fulfill the requirements
         if 1 <= lenX <=50 and lenX == lenY:
             return True
     return False
 
 def innProduct(xArray,yArray):
     lenX = len(xArray)
-    result = 0
+    innResult = 0
+    # start calculation
     for i in range(lenX):
-        result = result + (xArray[i]*yArray[i])
-    return result
+        innResult = innResult + (xArray[i]*yArray[i])
+    return innResult
 
 if __name__ == '__main__':
 	app.run(debug=False)
