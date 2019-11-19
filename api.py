@@ -15,6 +15,9 @@ Other methods:
 
 Database:
     MongoDB (if need, change the driver and related code to adapt for other database)
+    
+Todo:
+    Performance enhancement, especially the response time.
 """
 import os
 import sys
@@ -160,4 +163,4 @@ def innProduct(xArray,yArray):
     return innResult
 
 if __name__ == '__main__':
-	app.run(debug=False)
+    app.run(debug=False)
